@@ -1,0 +1,62 @@
+#10-day 99% VaR 
+call=1
+put=0.5
+
+S0=100
+K=101
+sigma=0.3
+rf=0.1
+T=1 
+
+############################## Monte Carlo ###################################
+
+import numpy as np
+import math
+from scipy.stats import norm
+import matplotlib.pyplot as plt
+
+n=100000
+Vt=0
+
+# Value of portfolio today
+
+for i in range(100000):
+    St=S0*math.exp(((rf-(1/2)*pow(sigma,2))*T)+sigma*math.sqrt(T)*np.random.normal(0,1))
+    V=math.exp(-rf*T)*max(call*(St-K),0)+max(put*(K-St),0)
+    Vt+=V
+    today=Vt/n
+    
+today
+
+# Value of portfolio in 10 days
+
+import statistics 
+t1=10/365
+t_1=1-t1 #(Act/365) t+delta_t
+t10=[]
+ui=0
+V_1=[]
+Vn=[]
+V_11=[]
+
+for w in range (100):
+    St1=S0+rf*S0*t1+sigma*S0*np.random.normal(0,1)
+    
+    for r in range (100):
+        St_1=St1*math.exp(((rf-(1/2)*pow(sigma,2))*t_1)+sigma*math.sqrt(t_1)*np.random.normal(0,1))
+        V_1.append(math.exp(-rf*t_1)*max(call*(St_1-K),0)+max(put*(K-St_1),0))
+        
+    Vn.append(float(statistics.mean(V_1)))
+    
+    for element in Vn:
+        V_11.append(today-float(element))
+
+vr=float(len(V_11)*0.99)
+var=round(vr)
+VaR=V_11[var]
+
+#Greeks
+
+d1=(math.log(S0/K)+(rf+0.5*pow(sigma,2))*T)/(sigma*math.sqrt(T))
+
+delta=norm.cdf(d1)
