@@ -1,0 +1,54 @@
+import sys, os
+from datetime import datetime
+import pandas as pd
+from APIS import secret_key, public_key
+import requests
+import json
+import numpy as np
+import re
+import math
+import matplotlib.pyplot as plt
+
+from binance.client import Client  #Binance API connection
+client=Client(public_key,secret_key)
+
+#Historical data from USDT pairs selected
+from coins import coin
+
+a=[] 
+for i in coin:
+    a.append(client.get_historical_klines(i, client.KLINE_INTERVAL_1DAY, "1 Apr, 2022"))                
+    
+b=[]
+for data in a:
+    aux=[]
+    for day in data:
+        aux.append(day[4])
+    b.append(aux)    
+
+cryp=pd.DataFrame(b)
+cryptos=cryp.T
+"""CORRELACIÓ"""
+btc=pd.to_numeric(cryptos[0])
+correlacio=[]
+for i in range (len(cryptos.columns)-1):
+    moneda=pd.to_numeric(cryptos[i+1])
+    correlacio.append(np.corrcoef(btc,moneda)[0][1])
+print("Correlació:")
+print(correlacio)
+
+"""DISTRIBUCIÓ NORMAL"""
+
+for i in range(len(cryptos.columns)):
+    coin1=pd.to_numeric(cryptos[i])
+    coin2=pd.to_numeric(cryptos[i][1:122])
+    dif=[]
+    for element in coin1:
+        for element2 in coin2:
+            div=element/element2
+            if(div!=1):
+                dif.append(math.log(div))
+            break
+    plt.title(coin[i])
+    plt.hist(dif)
+    plt.show()  
